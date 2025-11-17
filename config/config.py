@@ -15,9 +15,9 @@ class Config:
     """Application configuration with environment variable support"""
     
     # API Keys - prefer .env, then environment variables, finally defaults
-    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "AIzaSyDQ5xYoZurnsQ7w-sW28pTgPU8IeBH2q3g")
+    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "AIzaSyD")
     GEMINI_API_URL: str = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent"
-    WEATHER_API_KEY: str = os.getenv("WEATHER_API_KEY", "b010b4bbd1524f6c92c192501251111")
+    WEATHER_API_KEY: str = os.getenv("WEATHER_API_KEY", "b0101")
     
     # Server Configuration
     HOST: str = "0.0.0.0"
