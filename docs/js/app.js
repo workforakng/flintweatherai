@@ -1,20 +1,21 @@
-// FlintWeatherAI - GitHub Pages Frontend
-// Backend API: Render
-
-const API_BASE_URL = 'https://flintweatherai.onrender.com';
+// FlintWeatherAI - Frontend JavaScript
+// Author: AkNG
+// Version: 1.0
 
 let currentWeatherData = null;
 let currentTab = 'overview';
 let temperatureUnit = 'C';
 let isDarkTheme = false;
 
+// Initialize app
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🌤️ FlintWeatherAI v1.0 Initialized (GitHub Pages)');
+    console.log('🌤️ FlintWeatherAI v1.0 Initialized');
     loadThemePreference();
     loadUnitPreference();
     loadWeather();
 });
 
+// Theme Management
 function loadThemePreference() {
     const savedTheme = localStorage.getItem('theme') || 'light';
     isDarkTheme = savedTheme === 'dark';
@@ -35,6 +36,7 @@ function updateTheme() {
     }
 }
 
+// Unit Management
 function loadUnitPreference() {
     temperatureUnit = localStorage.getItem('unit') || 'C';
     const unitSelect = document.getElementById('unitSelect');
@@ -49,24 +51,29 @@ function changeUnit(unit) {
     }
 }
 
+// Settings Panel
 function toggleSettings() {
     const panel = document.getElementById('settingsPanel');
     panel.classList.toggle('active');
 }
 
+// Tab Navigation
 function switchTab(tabName) {
     currentTab = tabName;
     
+    // Update tab buttons
     document.querySelectorAll('.nav-tab').forEach(tab => {
         tab.classList.remove('active');
     });
     document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
     
+    // Re-render content
     if (currentWeatherData) {
         renderWeatherData(currentWeatherData);
     }
 }
 
+// Weather Loading
 async function loadWeather() {
     showLoader('Getting your location...');
     
@@ -91,7 +98,7 @@ async function fetchWeatherData(lat, lon) {
     try {
         showLoader('Fetching weather data...');
         
-        const response = await fetch(`${API_BASE_URL}/api/weather`, {
+        const response = await fetch('/api/weather', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ latitude: lat, longitude: lon })
@@ -107,10 +114,11 @@ async function fetchWeatherData(lat, lon) {
         
     } catch (error) {
         console.error('Weather fetch error:', error);
-        showError('Failed to load weather data. Backend may be sleeping (Render free tier). Please try again in 30 seconds.');
+        showError('Failed to load weather data. Please try again.');
     }
 }
 
+// Search Functionality
 async function performSearch() {
     const input = document.getElementById('searchInput');
     const query = input.value.trim();
@@ -120,7 +128,7 @@ async function performSearch() {
     try {
         showLoader('Searching locations...');
         
-        const response = await fetch(`${API_BASE_URL}/api/search-location`, {
+        const response = await fetch('/api/search-location', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ query })
@@ -142,6 +150,7 @@ async function performSearch() {
     }
 }
 
+// Refresh Weather
 async function refreshWeather() {
     if (!currentWeatherData) {
         loadWeather();
@@ -154,6 +163,7 @@ async function refreshWeather() {
     }
 }
 
+// Render Weather Data
 function renderWeatherData(data) {
     const mainContent = document.getElementById('mainContent');
     
@@ -167,7 +177,6 @@ function renderWeatherData(data) {
             break;
         case 'forecast':
             mainContent.innerHTML = renderForecastTab(data);
-            load7DayForecast(data.location.latitude, data.location.longitude);
             break;
         case 'details':
             mainContent.innerHTML = renderDetailsTab(data);
@@ -175,12 +184,14 @@ function renderWeatherData(data) {
     }
 }
 
+// Overview Tab
 function renderOverviewTab(data) {
     const { current_weather, location, weather_tips, forecast } = data;
     const temp = getTemperature(current_weather.temperature_celsius);
     const feelsLike = getTemperature(current_weather.feels_like_celsius);
     
     return `
+        <!-- Location Card -->
         <div class="weather-card">
             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 24px;">
                 <div>
@@ -213,6 +224,7 @@ function renderOverviewTab(data) {
                 </div>
             </div>
             
+            <!-- Weather Metrics Grid -->
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px;">
                 ${renderMetricCard('💧', 'Humidity', `${current_weather.humidity_percent}%`)}
                 ${renderMetricCard('💨', 'Wind', `${current_weather.wind_speed_kmh} km/h`)}
@@ -223,6 +235,7 @@ function renderOverviewTab(data) {
             </div>
         </div>
         
+        <!-- Weather Tips -->
         <div class="weather-card">
             <h3 style="font-size: 1.3rem; font-weight: 700; color: var(--text-1); margin-bottom: 16px;">
                 <i class="fas fa-lightbulb"></i> Weather Tips
@@ -236,6 +249,7 @@ function renderOverviewTab(data) {
             </div>
         </div>
         
+        <!-- 3-Day Forecast Preview -->
         <div class="weather-card">
             <h3 style="font-size: 1.3rem; font-weight: 700; color: var(--text-1); margin-bottom: 16px;">
                 <i class="fas fa-calendar-days"></i> 3-Day Outlook
@@ -249,6 +263,7 @@ function renderOverviewTab(data) {
     `;
 }
 
+// Hourly Tab
 function renderHourlyTab(data) {
     return `
         <div class="weather-card">
@@ -267,7 +282,7 @@ function renderHourlyTab(data) {
 
 async function loadHourlyForecast(lat, lon) {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/hourly`, {
+        const response = await fetch('/api/hourly', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ latitude: lat, longitude: lon })
@@ -305,61 +320,43 @@ async function loadHourlyForecast(lat, lon) {
     }
 }
 
+// Forecast Tab
 function renderForecastTab(data) {
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const icons = ['fa-sun', 'fa-cloud-sun', 'fa-cloud', 'fa-cloud-rain', 'fa-cloud-sun', 'fa-sun', 'fa-cloud'];
+    
     return `
         <div class="weather-card">
             <h3 style="font-size: 1.3rem; font-weight: 700; color: var(--text-1); margin-bottom: 20px;">
                 <i class="fas fa-calendar-week"></i> 7-Day Forecast
             </h3>
-            <div id="forecastContent">
-                <div class="loader-container">
-                    <div class="spinner"></div>
-                    <p class="loader-text">Loading forecast...</p>
-                </div>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                ${days.map((day, i) => {
+                    const temp = 20 + Math.random() * 10;
+                    return `
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px; background: var(--bg-2); border-radius: var(--radius);">
+                            <div style="display: flex; align-items: center; gap: 16px; flex: 1;">
+                                <i class="fas ${icons[i]} fa-2x" style="color: var(--primary); width: 40px;"></i>
+                                <div>
+                                    <div style="font-weight: 600; color: var(--text-1);">${day}</div>
+                                    <div style="color: var(--text-3); font-size: 0.875rem;">Partly Cloudy</div>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 16px;">
+                                <div style="color: var(--text-3);">💧 ${Math.floor(Math.random() * 40)}%</div>
+                                <div style="font-size: 1.3rem; font-weight: 700; color: var(--primary);">
+                                    ${getTemperature(temp)}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
             </div>
         </div>
     `;
 }
 
-async function load7DayForecast(lat, lon) {
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/forecast`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ latitude: lat, longitude: lon })
-        });
-        
-        const data = await response.json();
-        const forecastContent = document.getElementById('forecastContent');
-        
-        if (data.forecast && data.forecast.length > 0) {
-            forecastContent.innerHTML = `
-                <div style="display: flex; flex-direction: column; gap: 12px;">
-                    ${data.forecast.map(day => `
-                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px; background: var(--bg-2); border-radius: var(--radius);">
-                            <div style="display: flex; align-items: center; gap: 16px; flex: 1;">
-                                <i class="fas ${getWeatherIcon(day.condition)} fa-2x" style="color: var(--primary); width: 40px;"></i>
-                                <div>
-                                    <div style="font-weight: 600; color: var(--text-1);">${day.day}</div>
-                                    <div style="color: var(--text-3); font-size: 0.875rem;">${day.condition}</div>
-                                </div>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 16px;">
-                                <div style="color: var(--text-3);">💧 ${day.rain_chance}%</div>
-                                <div style="font-size: 1.1rem; color: var(--text-2);">${getTemperature(day.min_temp_c)}</div>
-                                <div style="font-size: 1.3rem; font-weight: 700; color: var(--primary);">${getTemperature(day.max_temp_c)}</div>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-        }
-    } catch (error) {
-        console.error('7-day forecast error:', error);
-        document.getElementById('forecastContent').innerHTML = '<p style="text-align: center; color: var(--text-3);">Failed to load forecast</p>';
-    }
-}
-
+// Details Tab
 function renderDetailsTab(data) {
     const { current_weather, sun_times } = data;
     
@@ -370,6 +367,7 @@ function renderDetailsTab(data) {
             </h3>
             
             <div style="display: grid; gap: 24px;">
+                <!-- Temperature Details -->
                 <div>
                     <h4 style="font-weight: 600; color: var(--text-1); margin-bottom: 12px;">🌡️ Temperature</h4>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
@@ -379,6 +377,7 @@ function renderDetailsTab(data) {
                     </div>
                 </div>
                 
+                <!-- Wind Details -->
                 <div>
                     <h4 style="font-weight: 600; color: var(--text-1); margin-bottom: 12px;">💨 Wind</h4>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
@@ -387,6 +386,7 @@ function renderDetailsTab(data) {
                     </div>
                 </div>
                 
+                <!-- Atmospheric -->
                 <div>
                     <h4 style="font-weight: 600; color: var(--text-1); margin-bottom: 12px;">🌍 Atmospheric</h4>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
@@ -397,6 +397,7 @@ function renderDetailsTab(data) {
                     </div>
                 </div>
                 
+                <!-- Sun & Moon -->
                 <div>
                     <h4 style="font-weight: 600; color: var(--text-1); margin-bottom: 12px;">☀️ Sun & Moon</h4>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
@@ -411,6 +412,7 @@ function renderDetailsTab(data) {
     `;
 }
 
+// Helper Render Functions
 function renderMetricCard(icon, label, value) {
     return `
         <div style="padding: 16px; background: var(--bg-2); border-radius: var(--radius); text-align: center;">
@@ -440,6 +442,7 @@ function renderDetailItem(label, value) {
     `;
 }
 
+// Utility Functions
 function getTemperature(celsius) {
     if (temperatureUnit === 'F') {
         const fahrenheit = Math.round((celsius * 9/5) + 32);
@@ -485,6 +488,7 @@ function showError(message) {
     `;
 }
 
+// Chat Functions
 function toggleChat() {
     const panel = document.getElementById('chatPanel');
     panel.classList.toggle('active');
@@ -496,13 +500,15 @@ async function sendChat() {
     
     if (!message || !currentWeatherData) return;
     
+    // Add user message
     addChatMessage(message, 'user');
     input.value = '';
     
+    // Show typing indicator
     const typingId = addChatMessage('Thinking...', 'bot', true);
     
     try {
-        const response = await fetch(`${API_BASE_URL}/api/chatbot`, {
+        const response = await fetch('/api/chatbot', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -513,7 +519,10 @@ async function sendChat() {
         
         const data = await response.json();
         
+        // Remove typing indicator
         document.getElementById(typingId)?.remove();
+        
+        // Add bot response
         addChatMessage(data.response, 'bot');
         
     } catch (error) {
@@ -543,15 +552,17 @@ function addChatMessage(text, sender, isTyping = false) {
     return messageId;
 }
 
+// Clear Cache
 async function clearCache() {
     try {
-        await fetch(`${API_BASE_URL}/api/cache-clear`, { method: 'POST' });
+        await fetch('/api/cache-clear', { method: 'POST' });
         alert('Cache cleared successfully!');
     } catch (error) {
         alert('Failed to clear cache');
     }
 }
 
+// Auto-resize chat input
 document.addEventListener('DOMContentLoaded', () => {
     const chatInput = document.getElementById('chatInput');
     if (chatInput) {
@@ -562,4 +573,73 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-console.log('✅ FlintWeatherAI Frontend Loaded (GitHub Pages + Render Backend)');
+console.log('✅ FlintWeatherAI Frontend Loaded');
+
+// Load 7-day forecast
+async function load7DayForecast(lat, lon) {
+    try {
+        const response = await fetch('/api/forecast', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ latitude: lat, longitude: lon })
+        });
+        
+        const data = await response.json();
+        const forecastContent = document.getElementById('forecastContent');
+        
+        if (data.forecast && data.forecast.length > 0) {
+            forecastContent.innerHTML = `
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    ${data.forecast.map(day => `
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px; background: var(--bg-2); border-radius: var(--radius);">
+                            <div style="display: flex; align-items: center; gap: 16px; flex: 1;">
+                                <i class="fas ${getWeatherIcon(day.condition)} fa-2x" style="color: var(--primary); width: 40px;"></i>
+                                <div>
+                                    <div style="font-weight: 600; color: var(--text-1);">${day.day}</div>
+                                    <div style="color: var(--text-3); font-size: 0.875rem;">${day.condition}</div>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 16px;">
+                                <div style="color: var(--text-3);">💧 ${day.rain_chance}%</div>
+                                <div style="font-size: 1.1rem; color: var(--text-2);">${getTemperature(day.min_temp_c)}</div>
+                                <div style="font-size: 1.3rem; font-weight: 700; color: var(--primary);">${getTemperature(day.max_temp_c)}</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <div style="margin-top: 24px; padding: 20px; background: var(--bg-2); border-radius: var(--radius);">
+                    <h4 style="font-weight: 600; color: var(--text-1); margin-bottom: 12px;">
+                        <i class="fas fa-wind"></i> Air Quality Index
+                    </h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
+                        <div style="padding: 12px; background: var(--bg-3); border-radius: var(--radius); text-align: center;">
+                            <div style="font-size: 2rem; font-weight: 700; color: var(--primary);">${data.air_quality.us_epa_index || 1}</div>
+                            <div style="color: var(--text-3); font-size: 0.875rem;">US EPA Index</div>
+                        </div>
+                        <div style="padding: 12px; background: var(--bg-3); border-radius: var(--radius); text-align: center;">
+                            <div style="font-size: 2rem; font-weight: 700; color: var(--primary);">${data.air_quality.pm2_5 || 0}</div>
+                            <div style="color: var(--text-3); font-size: 0.875rem;">PM2.5</div>
+                        </div>
+                        <div style="padding: 12px; background: var(--bg-3); border-radius: var(--radius); text-align: center;">
+                            <div style="font-size: 2rem; font-weight: 700; color: var(--primary);">${data.air_quality.pm10 || 0}</div>
+                            <div style="color: var(--text-3); font-size: 0.875rem;">PM10</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('7-day forecast error:', error);
+        document.getElementById('forecastContent').innerHTML = '<p style="text-align: center; color: var(--text-3);">Failed to load forecast</p>';
+    }
+}
+
+// Update switchTab to load forecast
+const originalSwitchTab = switchTab;
+switchTab = function(tabName) {
+    originalSwitchTab(tabName);
+    if (tabName === 'forecast' && currentWeatherData) {
+        load7DayForecast(currentWeatherData.location.latitude, currentWeatherData.location.longitude);
+    }
+};
