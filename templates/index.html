@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="FlintWeatherAI - Modern AI-powered weather application">
+    <meta name="theme-color" content="#7c3aed">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <title>FlintWeatherAI - Smart Weather Forecasting</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Hero Header -->
+        <header class="hero-header">
+            <div class="header-gradient"></div>
+            <div class="header-content">
+                <div class="brand-section">
+                    <div class="brand-logo">
+                        <i class="fas fa-bolt-lightning"></i>
+                    </div>
+                    <div class="brand-text">
+                        <h1 class="brand-title">FlintWeather<span class="brand-ai">AI</span></h1>
+                        <p class="brand-tagline">Smart Weather • Real-time AI</p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button class="action-btn" onclick="toggleTheme()" title="Toggle Theme">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <button class="action-btn" onclick="refreshWeather()" title="Refresh">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                    <button class="action-btn" onclick="toggleSettings()" title="Settings">
+                        <i class="fas fa-sliders-h"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Search Bar -->
+            <div class="search-wrapper">
+                <div class="search-box">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" class="search-input" id="searchInput" 
+                           placeholder="Search for cities worldwide..." 
+                           autocomplete="off"
+                           onkeypress="if(event.key==='Enter') performSearch()">
+                    <button class="search-btn-inline" onclick="performSearch()">
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+                <button class="location-btn" onclick="loadWeather()" title="Use my location">
+                    <i class="fas fa-location-crosshairs"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="nav-tabs">
+            <button class="nav-tab active" data-tab="overview" onclick="switchTab('overview')">
+                <i class="fas fa-home"></i>
+                <span>Overview</span>
+            </button>
+            <button class="nav-tab" data-tab="hourly" onclick="switchTab('hourly')">
+                <i class="fas fa-clock"></i>
+                <span>Hourly</span>
+            </button>
+            <button class="nav-tab" data-tab="forecast" onclick="switchTab('forecast')">
+                <i class="fas fa-calendar-week"></i>
+                <span>7 Days</span>
+            </button>
+            <button class="nav-tab" data-tab="details" onclick="switchTab('details')">
+                <i class="fas fa-chart-line"></i>
+                <span>Details</span>
+            </button>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="main-content" id="mainContent">
+            <div class="loader-container">
+                <div class="spinner"></div>
+                <p class="loader-text">Loading weather data...</p>
+            </div>
+        </main>
+
+        <!-- AI Chatbot Widget -->
+        <div class="chat-widget">
+            <button class="chat-fab" onclick="toggleChat()">
+                <i class="fas fa-robot"></i>
+            </button>
+            <div class="chat-panel" id="chatPanel">
+                <div class="chat-header">
+                    <div class="chat-header-info">
+                        <i class="fas fa-robot"></i>
+                        <div>
+                            <h4>AI Weather Assistant</h4>
+                            <p class="chat-status">Online • Ask anything</p>
+                        </div>
+                    </div>
+                    <button class="chat-close" onclick="toggleChat()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="chat-messages" id="chatMessages">
+                    <div class="chat-msg bot">
+                        <div class="chat-avatar bot-avatar">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="chat-bubble">
+                            👋 Hello! I'm your AI weather assistant. Ask me anything about the weather!
+                        </div>
+                    </div>
+                </div>
+                <div class="chat-input-area">
+                    <textarea class="chat-input" id="chatInput" 
+                              placeholder="Ask about weather..." 
+                              rows="1"
+                              onkeypress="if(event.key==='Enter' && !event.shiftKey) { event.preventDefault(); sendChat(); }"></textarea>
+                    <button class="chat-send-btn" onclick="sendChat()">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Panel -->
+        <aside class="settings-panel" id="settingsPanel">
+            <div class="settings-header">
+                <h3><i class="fas fa-sliders-h"></i> Settings</h3>
+                <button class="settings-close" onclick="toggleSettings()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="settings-content">
+                <div class="setting-group">
+                    <label class="setting-label">
+                        <i class="fas fa-temperature-three-quarters"></i>
+                        Temperature Unit
+                    </label>
+                    <select class="setting-select" id="unitSelect" onchange="changeUnit(this.value)">
+                        <option value="C">Celsius (°C)</option>
+                        <option value="F">Fahrenheit (°F)</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label class="setting-label">
+                        <i class="fas fa-palette"></i>
+                        Theme
+                    </label>
+                    <div class="theme-toggle" id="themeToggle" onclick="toggleTheme()">
+                        <div class="theme-toggle-track">
+                            <div class="theme-toggle-thumb"></div>
+                        </div>
+                        <span class="theme-label">Dark Mode</span>
+                    </div>
+                </div>
+                <div class="setting-group">
+                    <button class="setting-btn danger" onclick="clearCache()">
+                        <i class="fas fa-trash"></i>
+                        Clear Cache
+                    </button>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

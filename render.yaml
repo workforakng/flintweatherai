@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: flintweatherai
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --workers=2 --timeout=120 --bind=0.0.0.0:$PORT app.main:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.13
+      - key: GEMINI_API_KEY
+        value: AIzaSyDQ5xYoZurnsQ7w-sW28pTgPU8IeBH2q3g
+      - key: WEATHER_API_KEY
+        value: b010b4bbd1524f6c92c192501251111

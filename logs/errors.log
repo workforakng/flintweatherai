@@ -1,0 +1,2 @@
+2025-11-17 01:53:32,942 | ERROR    | get_chatbot_response:361 | Gemini parse error: 'parts'
+2025-11-17 01:53:53,027 | ERROR    | get_chatbot_response:361 | Gemini parse error: 'parts'
