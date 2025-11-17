@@ -3,9 +3,9 @@ from dataclasses import dataclass
 
 @dataclass
 class Config:
-    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "AIzaSyDQ5xYoZurnsQ7w-sW28pTgPU8IeBH2q3g")
+    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "AISQ5xY")
     GEMINI_API_URL: str = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
-    WEATHER_API_KEY: str = "b010b4bbd1524f6c92c192501251111"
+    WEATHER_API_KEY: str = "b010b111"
     HOST: str = "0.0.0.0"
     PORT: int = 8000
     DEBUG: bool = False
